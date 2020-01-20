@@ -20,6 +20,8 @@ def create_database_table():
 
 @app.route("/api/chatizen", methods=["GET"])
 def get_all_chatizens():
+    if request.cookies.get("password", "") != "sadmcasldkfjsdclasdkcmascdmklasdm":
+        return Response(status=401)
     chatizen_storage = sqlite3.connect("chatizens.db")
     chatizen_storage.row_factory = sqlite3.Row
     c = chatizen_storage.cursor()
@@ -34,6 +36,8 @@ def get_all_chatizens():
 
 @app.route("/api/chatizen/<nick>", methods=["GET"])
 def get_chatizen(nick):
+    if request.cookies.get("password", "") != "sadmcasldkfjsdclasdkcmascdmklasdm":
+        return Response(status=401)
     chatizen_storage = sqlite3.connect("chatizens.db")
     chatizen_storage.row_factory = sqlite3.Row
     c = chatizen_storage.cursor()
