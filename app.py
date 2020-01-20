@@ -6,6 +6,9 @@ app = Flask(__name__)
 CORS(app)
 
 STORAGE_FILE = "chatizens.db"
+READ_PW = "sadmcasldkfjsdclasdkcmascdmklasdm"
+with open("write-password.txt") as f:
+    WRITE_PW = f.readline()
 
 
 @app.before_first_request
@@ -13,14 +16,14 @@ def create_database_table():
     chatizen_storage = sqlite3.connect("chatizens.db")
     chatizen_storage.row_factory = sqlite3.Row
     c = chatizen_storage.cursor()
-    c.execute("CREATE TABLE IF NOT EXISTS chatizens (nick TEXT NOT NULL, lat REAL NOT NULL, lon REAL NOT NULL)")
+    c.execute("CREATE TABLE IF NOT EXISTS chatizens (nick TEXT PRIMARY KEY, lat REAL NOT NULL, lon REAL NOT NULL)")
     chatizen_storage.commit()
     c.close()
 
 
 @app.route("/api/chatizen", methods=["GET"])
 def get_all_chatizens():
-    if request.cookies.get("password", "") != "sadmcasldkfjsdclasdkcmascdmklasdm":
+    if request.cookies.get("password", "") != READ_PW:
         return Response(status=401)
     chatizen_storage = sqlite3.connect("chatizens.db")
     chatizen_storage.row_factory = sqlite3.Row
@@ -36,7 +39,7 @@ def get_all_chatizens():
 
 @app.route("/api/chatizen/<nick>", methods=["GET"])
 def get_chatizen(nick):
-    if request.cookies.get("password", "") != "sadmcasldkfjsdclasdkcmascdmklasdm":
+    if request.cookies.get("password", "") != READ_PW:
         return Response(status=401)
     chatizen_storage = sqlite3.connect("chatizens.db")
     chatizen_storage.row_factory = sqlite3.Row
@@ -53,13 +56,15 @@ def get_chatizen(nick):
 
 @app.route("/api/chatizen/<nick>", methods=["POST"])
 def add_chatizen(nick):
+    if request.cookies.get("password", "") != WRITE_PW:
+        return Response(status=401)
     chatizen_storage = sqlite3.connect("chatizens.db")
     chatizen_storage.row_factory = sqlite3.Row
     chatizen_data = dict(request.form)
     if "lat" not in chatizen_data or "lon" not in chatizen_data:
         abort(400)
     c = chatizen_storage.cursor()
-    c.execute("INSERT INTO chatizens VALUES (?,?,?)", (nick, chatizen_data["lat"], chatizen_data["lon"]))
+    c.execute("REPLACE INTO chatizens VALUES (?,?,?)", (nick, chatizen_data["lat"], chatizen_data["lon"]))
     chatizen_storage.commit()
     c.close()
     chatizen_storage.close()
@@ -68,6 +73,8 @@ def add_chatizen(nick):
 
 @app.route("/api/chatizen/<nick>", methods=["DELETE"])
 def delete_chatizen(nick):
+    if request.cookies.get("password", "") != WRITE_PW:
+        return Response(status=401)
     chatizen_storage = sqlite3.connect("chatizens.db")
     chatizen_storage.row_factory = sqlite3.Row
     c = chatizen_storage.cursor()
