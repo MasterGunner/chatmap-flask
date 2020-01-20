@@ -5,9 +5,9 @@ import sqlite3
 app = Flask(__name__)
 CORS(app)
 
-STORAGE_FILE = "chatizens.db"
+STORAGE_FILE = "storage/chatizens.db"
 READ_PW = "sadmcasldkfjsdclasdkcmascdmklasdm"
-with open("write-password.txt") as f:
+with open("storage/write-password.txt") as f:
     WRITE_PW = f.readline()
 
 
