@@ -1,4 +1,4 @@
-from flask import Flask, abort, jsonify, request, Response
+from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 import sqlite3
 
@@ -24,7 +24,7 @@ def create_database_table():
 @app.route("/api/chatizen", methods=["GET"])
 def get_all_chatizens():
     if request.cookies.get("password", "") != READ_PW:
-        return Response(status=401)
+        return Response(response="Unauthorized", status=401)
     chatizen_storage = sqlite3.connect("chatizens.db")
     chatizen_storage.row_factory = sqlite3.Row
     c = chatizen_storage.cursor()
@@ -40,7 +40,7 @@ def get_all_chatizens():
 @app.route("/api/chatizen/<nick>", methods=["GET"])
 def get_chatizen(nick):
     if request.cookies.get("password", "") != READ_PW:
-        return Response(status=401)
+        return Response(response="Unauthorized", status=401)
     chatizen_storage = sqlite3.connect("chatizens.db")
     chatizen_storage.row_factory = sqlite3.Row
     c = chatizen_storage.cursor()
@@ -49,7 +49,7 @@ def get_chatizen(nick):
     c.close()
     chatizen_storage.close()
     if row is None:
-        abort(404)
+        return Response(response="Not Found", status=404)
     else:
         return jsonify(dict(row))
 
@@ -57,12 +57,13 @@ def get_chatizen(nick):
 @app.route("/api/chatizen/<nick>", methods=["POST"])
 def add_chatizen(nick):
     if request.cookies.get("password", "") != WRITE_PW:
-        return Response(status=401)
+        return Response(response="Unauthorized", status=401)
     chatizen_storage = sqlite3.connect("chatizens.db")
     chatizen_storage.row_factory = sqlite3.Row
-    chatizen_data = dict(request.form)
+    chatizen_data = dict(request.get_json())
+
     if "lat" not in chatizen_data or "lon" not in chatizen_data:
-        abort(400)
+        return Response(response="Invalid Request", status=400)
     c = chatizen_storage.cursor()
     c.execute("REPLACE INTO chatizens VALUES (?,?,?)", (nick, chatizen_data["lat"], chatizen_data["lon"]))
     chatizen_storage.commit()
@@ -74,7 +75,7 @@ def add_chatizen(nick):
 @app.route("/api/chatizen/<nick>", methods=["DELETE"])
 def delete_chatizen(nick):
     if request.cookies.get("password", "") != WRITE_PW:
-        return Response(status=401)
+        return Response(response="Unauthorized", status=401)
     chatizen_storage = sqlite3.connect("chatizens.db")
     chatizen_storage.row_factory = sqlite3.Row
     c = chatizen_storage.cursor()
@@ -83,7 +84,7 @@ def delete_chatizen(nick):
     if row is None:
         c.close()
         chatizen_storage.close()
-        abort(404)
+        return Response(response="Not Found", status=401)
     else:
         c.execute("DELETE FROM chatizens WHERE nick = ?", (nick,))
         chatizen_storage.commit()
