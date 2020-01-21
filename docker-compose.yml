@@ -2,7 +2,8 @@ version: '3'
 services:
   frontend:
     image: nginx
-    depends_on: backend
+    depends_on: 
+      - backend
     ports:
       - "8080:80"
     volumes:
