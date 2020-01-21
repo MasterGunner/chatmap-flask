@@ -1,16 +1,42 @@
 version: '3'
+
 services:
   frontend:
+    container_name: chat-map-frontend
     image: nginx
-    depends_on: 
+    depends_on:
       - backend
-    ports:
-      - "8080:80"
+    networks:
+      - web
+      - default
+    environment:
+      - ALLOW_OVERRIDE=true
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./map.html:/var/www/chatmap/index.html
+    labels:
+      - "traefik.domain=chatmap.${DOMAIN_DBCO}"
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.backend=frontend"
+      - "traefik.frontend.rule=Host:chatmap.${DOMAIN_DBCO}"
+      - "traefik.port=80"
+      - "traefik.protocol=http"
+      - "com.centurylinklabs.watchtower.enable=true"
+    restart: unless-stopped
+
   backend:
+    container_name: chat-map-backend
     build:
       context: .
+    networks:
+      - default
     volumes:
       - ./storage:/app/storage
+    restart: unless-stopped
+
+networks:
+  web:
+    external: true
+
+# vim: tabstop=2 shiftwidth=2 expandtab
