@@ -84,7 +84,7 @@ def delete_chatizen(nick):
     if row is None:
         c.close()
         chatizen_storage.close()
-        return Response(response="Not Found", status=401)
+        return Response(response="Not Found", status=404)
     else:
         c.execute("DELETE FROM chatizens WHERE nick = ?", (nick,))
         chatizen_storage.commit()
