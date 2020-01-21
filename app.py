@@ -8,7 +8,7 @@ CORS(app)
 STORAGE_FILE = "storage/chatizens.db"
 READ_PW = "sadmcasldkfjsdclasdkcmascdmklasdm"
 with open("storage/write-password.txt") as f:
-    WRITE_PW = f.readline()
+    WRITE_PW = f.readline().rstrip("\n")
 
 
 @app.before_first_request
