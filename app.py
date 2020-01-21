@@ -13,7 +13,7 @@ with open("storage/write-password.txt") as f:
 
 @app.before_first_request
 def create_database_table():
-    chatizen_storage = sqlite3.connect("chatizens.db")
+    chatizen_storage = sqlite3.connect(STORAGE_FILE)
     chatizen_storage.row_factory = sqlite3.Row
     c = chatizen_storage.cursor()
     c.execute("CREATE TABLE IF NOT EXISTS chatizens (nick TEXT PRIMARY KEY, lat REAL NOT NULL, lon REAL NOT NULL)")
@@ -25,7 +25,7 @@ def create_database_table():
 def get_all_chatizens():
     if request.cookies.get("password", "") != READ_PW:
         return Response(response="Unauthorized", status=401)
-    chatizen_storage = sqlite3.connect("chatizens.db")
+    chatizen_storage = sqlite3.connect(STORAGE_FILE)
     chatizen_storage.row_factory = sqlite3.Row
     c = chatizen_storage.cursor()
     rows = c.execute("SELECT * FROM chatizens").fetchall()
@@ -41,7 +41,7 @@ def get_all_chatizens():
 def get_chatizen(nick):
     if request.cookies.get("password", "") != READ_PW:
         return Response(response="Unauthorized", status=401)
-    chatizen_storage = sqlite3.connect("chatizens.db")
+    chatizen_storage = sqlite3.connect(STORAGE_FILE)
     chatizen_storage.row_factory = sqlite3.Row
     c = chatizen_storage.cursor()
     row = c.execute("SELECT * FROM chatizens WHERE nick = ?", (nick,))
@@ -58,7 +58,7 @@ def get_chatizen(nick):
 def add_chatizen(nick):
     if request.cookies.get("password", "") != WRITE_PW:
         return Response(response="Unauthorized", status=401)
-    chatizen_storage = sqlite3.connect("chatizens.db")
+    chatizen_storage = sqlite3.connect(STORAGE_FILE)
     chatizen_storage.row_factory = sqlite3.Row
     chatizen_data = dict(request.get_json())
 
@@ -76,7 +76,7 @@ def add_chatizen(nick):
 def delete_chatizen(nick):
     if request.cookies.get("password", "") != WRITE_PW:
         return Response(response="Unauthorized", status=401)
-    chatizen_storage = sqlite3.connect("chatizens.db")
+    chatizen_storage = sqlite3.connect(STORAGE_FILE)
     chatizen_storage.row_factory = sqlite3.Row
     c = chatizen_storage.cursor()
     row = c.execute("SELECT * FROM chatizens WHERE nick = ?", (nick,))
