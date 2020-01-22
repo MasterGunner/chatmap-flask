@@ -7,50 +7,99 @@
     <style>
         body {
             margin: 0;
-            padding: 0
+            padding: 0;
         }
 
         #map {
             height: 100%;
             width: 100%;
-            position: absolute;;
+            position: absolute;
+        }
+
+        #searchbar {
+            width: 20em;
+            position: fixed;
+            top: 4em;
+            left: 1em;
+            z-index: 1;
         }
     </style>
 
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/2.6.1/fuse.min.js"></script>
+    <script type="text/javascript">
+        var chatizens, searchIndex, map;
+
+        function doSearch() {
+            var results = searchIndex.search($("#searchbar").val());
+
+            $("#suggestions").empty();
+
+            $.each(results,
+                function (i, result) {
+                    $("#suggestions").append("<option>" + result + "</option>");
+                });
+        }
+
+        function submitSearch() {
+            $.each(chatizens,
+                function (i, chatizen) {
+                    if (chatizen.nick === $("#searchbar").val()) {
+                        map.panTo({lat: chatizen.lat, lng: chatizen.lon});
+                        map.setZoom(6);
+                    }
+                }
+            );
+        }
+    </script>
 </head>
 <body>
+<form action="#" onsubmit="submitSearch()">
+    <input type="search" id="searchbar" placeholder="Search" list="suggestions" oninput="doSearch()" autocomplete="off">
+
+    <datalist id="suggestions"></datalist>
+</form>
 <div id="map"></div>
 <script>
     function initMap() {
-        var map = new google.maps.Map(document.getElementById('map'), {
+        map = new google.maps.Map(document.getElementById('map'), {
             zoom: 3,
             center: {lat: 0, lng: 0}
         });
 
         function addPin(i, chatizen) {
-            new google.maps.Marker({
+            var marker = new google.maps.Marker({
                 position: {lat: chatizen.lat, lng: chatizen.lon},
                 map: map,
                 label: chatizen.nick[0],
                 title: chatizen.nick
             });
+
+            var infowindow = new google.maps.InfoWindow({
+                content: chatizen.nick
+            });
+
+            marker.addListener('click', function () {
+                infowindow.open(map, marker);
+            });
         }
 
         document.cookie = "password=sadmcasldkfjsdclasdkcmascdmklasdm";
         $.getJSON(
-                "https://chatmap.dbco.link/api/chatizen",
-                function (data, status, xhr) {
-                    $.each(data, addPin);
-                }
+            "https://chatmap.dbco.link/api/chatizen",
+            function (data, status, xhr) {
+                var options = {
+                    keys: ["nick"],
+                    id: "nick"
+                };
+
+                chatizens = data;
+
+                searchIndex = new Fuse(data, options);
+                $.each(data, addPin);
+            }
         );
 
-//        new google.maps.Marker({
-//            position: {lat: 0, lng: 0},
-//            map: map,
-//            title: "aaaaaaaaaaaa",
-//            label: "a"
-//        });
     }
 </script>
 <script async defer
@@ -58,3 +107,4 @@
 </script>
 </body>
 </html>
+
