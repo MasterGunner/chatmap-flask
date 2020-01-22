@@ -27,6 +27,7 @@ services:
 
   backend:
     container_name: chat-map-backend
+    image: starlitghost/chatmap-flask:latest
     build:
       context: .
     networks:
