@@ -4,8 +4,14 @@
     <meta charset="UTF-8">
     <title>DesertBus Community Chatmap</title>
 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
+
     <style>
-        body {
+        html, body {
+            height: 100%;
             margin: 0;
             padding: 0;
         }
@@ -13,43 +19,35 @@
         #map {
             height: 100%;
             width: 100%;
-            position: absolute;
         }
 
         #searchbar {
             width: 20em;
             position: fixed;
-            top: 4em;
-            left: 1em;
-            z-index: 1;
+            top: 1em;
+            left: 4em;
+            z-index: 500;
         }
     </style>
 
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/2.6.1/fuse.min.js"></script>
     <script type="text/javascript">
         var chatizens, searchIndex, map;
 
         function doSearch() {
-            var results = searchIndex.search($("#searchbar").val());
+            var results = searchIndex.search(document.getElementById("searchbar").value);
 
-            $("#suggestions").empty();
+            document.getElementById("suggestions").innerHTML = "";
 
-            $.each(results,
-                function (i, result) {
-                    $("#suggestions").append("<option>" + result + "</option>");
-                });
+            results.forEach(result => document.getElementById("suggestions").innerHTML += "<option>" + result + "</option>");
         }
 
         function submitSearch() {
-            $.each(chatizens,
-                function (i, chatizen) {
-                    if (chatizen.nick === $("#searchbar").val()) {
-                        map.panTo({lat: chatizen.lat, lng: chatizen.lon});
-                        map.setZoom(6);
-                    }
+            chatizens.forEach(function (chatizen) {
+                if (chatizen.nick.toUpperCase() === document.getElementById("searchbar").value.toUpperCase()) {
+                    map.setView({lat: chatizen.lat, lon: chatizen.lon}, 6);
                 }
-            );
+            });
         }
     </script>
 </head>
@@ -62,48 +60,42 @@
 <div id="map"></div>
 <script>
     function initMap() {
-        map = new google.maps.Map(document.getElementById('map'), {
-            zoom: 3,
-            center: {lat: 0, lng: 0}
+        // initialize Leaflet
+        var mainLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
         });
 
-        function addPin(i, chatizen) {
-            var marker = new google.maps.Marker({
-                position: {lat: chatizen.lat, lng: chatizen.lon},
-                map: map,
-                label: chatizen.nick[0],
-                title: chatizen.nick
-            });
+        map = L.map('map', {
+            center: {lat: 0, lon: 0},
+            zoom: 3,
+            layers: [mainLayer]
+        });
 
-            var infowindow = new google.maps.InfoWindow({
-                content: chatizen.nick
-            });
+        // show the scale bar on the lower left corner
+        L.control.scale().addTo(map);
 
-            marker.addListener('click', function () {
-                infowindow.open(map, marker);
-            });
+        function addPin(chatizen) {
+            L.marker({lat: chatizen.lat, lon: chatizen.lon}, {riseOnHover: true})
+                .bindPopup(chatizen.nick, {autoClose: false, closeOnClick: false})
+                .bindTooltip(chatizen.nick, {/*permanent: true*/}).openTooltip()
+                .addTo(map);
         }
 
         document.cookie = "password=sadmcasldkfjsdclasdkcmascdmklasdm";
-        $.getJSON(
-            "https://chatmap.dbco.link/api/chatizen",
-            function (data, status, xhr) {
-                var options = {
-                    keys: ["nick"],
-                    id: "nick"
-                };
+        fetch("https://chatmap.dbco.link/api/chatizen").then(response => response.json()).then((data) => {
+            var options = { 
+                keys: ["nick"], 
+                id: "nick" 
+            };
 
-                chatizens = data;
+            chatizens = data;
 
-                searchIndex = new Fuse(data, options);
-                $.each(data, addPin);
-            }
-        );
-
+            searchIndex = new Fuse(data, options);
+            data.forEach(chatizen => addPin(chatizen));
+        });
     }
-</script>
-<script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQ5SLYXwpkW79L0ItO2lHpiBKwFBAIRs4&callback=initMap">
+
+    initMap();
 </script>
 </body>
 </html>
