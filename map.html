@@ -64,16 +64,35 @@
         var mainLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19, attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
         });
+        var GermanLayer = L.tileLayer('https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '&copy; <a href="https://openstreetmap.de/copyright">OpenStreetMap contributors</a>'
+        });
+        var FrenchLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '&copy; <a href="https://openstreetmap.fr/copyright">OpenStreetMap contributors</a>'
+        });
+        var WikipediaLayer = L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '&copy; <a href="https://foundation.wikimedia.org">Wikimedia</a>'
+        });
 
         map = L.map('map', {
             center: {lat: 0, lon: 0},
             zoom: 3,
-            layers: [mainLayer]
+            layers: mainLayer
         });
 
         // show the scale bar on the lower left corner
         L.control.scale().addTo(map);
 
+        // show the layer control
+        var baseMaps = {
+            "Open Street Maps": mainLayer,
+            "German OSM": GermanLayer,
+            "French OSM": FrenchLayer,
+            "Wikipedia": WikipediaLayer
+        };
+        L.control.layers(baseMaps).addTo(map);
+
+        // Add a marker for each chatizen to the map
         function addPin(chatizen) {
             L.marker({lat: chatizen.lat, lon: chatizen.lon}, {riseOnHover: true})
                 .bindPopup(chatizen.nick, {autoClose: false, closeOnClick: false})
@@ -82,7 +101,7 @@
         }
 
         document.cookie = "password=sadmcasldkfjsdclasdkcmascdmklasdm";
-        fetch("https://chatmap.dbco.link/api/chatizen").then(response => response.json()).then((data) => {
+        fetch("/api/chatizen", {credentials: "include"}).then(response => response.json()).then((data) => {
             var options = { 
                 keys: ["nick"], 
                 id: "nick" 
