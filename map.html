@@ -5,9 +5,15 @@
     <title>DesertBus Community Chatmap</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
-    <!-- Make sure you put this AFTER Leaflet's CSS -->
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
+
+    <!-- Mapbox GL (for the custom English map, which uses vector tiles) -->
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.js'></script>
+    <script src="https://unpkg.com/mapbox-gl-leaflet/leaflet-mapbox-gl.js"></script>
 
     <style>
         html, body {
@@ -64,6 +70,11 @@
         var mainLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19, attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
         });
+        var EnglishLayer = L.mapboxGL({
+            attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a>',
+            accessToken: 'not-needed',
+            style: 'https://api.maptiler.com/maps/4d188d87-c11b-4328-8e70-01c4cacc8c3f/style.json?key=gxTeBGYDCi08suCVsWUo'
+        });
         var GermanLayer = L.tileLayer('https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png', {
             maxZoom: 19, attribution: '&copy; <a href="https://openstreetmap.de/copyright">OpenStreetMap contributors</a>'
         });
@@ -86,6 +97,7 @@
         // show the layer control
         var baseMaps = {
             "Open Street Maps": mainLayer,
+            "English Map": EnglishLayer,
             "German OSM": GermanLayer,
             "French OSM": FrenchLayer,
             "Wikipedia": WikipediaLayer
